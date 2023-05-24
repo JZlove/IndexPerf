@@ -1,10 +1,12 @@
 import logging
 from typing import List, Sequence, Optional
 from llama_index import GPTTreeIndex, Document, ServiceContext, PromptHelper, LLMPredictor
+from llama_index.callbacks import CallbackManager
 from llama_index.data_structs.node import Node
 from llama_index.node_parser.node_utils import get_nodes_from_document
 from llama_index.indices.base import BaseGPTIndex
 from langchain.text_splitter import CharacterTextSplitter
+from TimeCostHandler import TimeCostHandler
 from LLM import *
 
 logger = logging.getLogger(__name__)
@@ -25,18 +27,21 @@ def create_nodes_from_documents(documents: Sequence[Document]):
 def create_index_from_nodes(nodes: List[Node]):
     prompt_helper = PromptHelper(max_input_size=max_input_size,
                                  num_output=num_output, max_chunk_overlap=max_chunk_overlap)
-    # vicunallm = VicunaLLM()
-    # vicunallm.load_model()
-    # llm_predictor = LLMPredictor(llm=vicunallm)
-    chatglm = ChatGLM()
-    chatglm.load_model()
-    llm_predictor = LLMPredictor(llm=chatglm)
+    vicunallm = VicunaLLM()
+    vicunallm.load_model()
+    llm_predictor = LLMPredictor(llm=vicunallm)
+    # chatglm = ChatGLM()
+    # chatglm.load_model()
+    # llm_predictor = LLMPredictor(llm=chatglm)
+    callbackManager = CallbackManager()
+    time_cost_handler = TimeCostHandler()
+    callbackManager.add_handler(time_cost_handler)
 
     server_context = ServiceContext.from_defaults(
-        llm_predictor=llm_predictor, prompt_helper=prompt_helper)
+        llm_predictor=llm_predictor, prompt_helper=prompt_helper, callback_manager=callbackManager)
 
     logger.info("To build tree index.")
-    index = GPTTreeIndex(nodes=nodes, num_children=3,
+    index = GPTTreeIndex(nodes=nodes, num_children=5,
                          service_context=server_context)
     logger.info("Build tree index done.")
 
