@@ -25,6 +25,9 @@ def create_nodes_from_documents(documents: Sequence[Document]):
 
 
 def create_index_from_nodes(nodes: List[Node]):
+    time_cost_handler = TimeCostHandler([], [])
+    callbackManager = CallbackManager([time_cost_handler])
+
     prompt_helper = PromptHelper(max_input_size=max_input_size,
                                  num_output=num_output, max_chunk_overlap=max_chunk_overlap)
     vicunallm = VicunaLLM()
@@ -33,9 +36,6 @@ def create_index_from_nodes(nodes: List[Node]):
     # chatglm = ChatGLM()
     # chatglm.load_model()
     # llm_predictor = LLMPredictor(llm=chatglm)
-    callbackManager = CallbackManager()
-    time_cost_handler = TimeCostHandler()
-    callbackManager.add_handler(time_cost_handler)
 
     server_context = ServiceContext.from_defaults(
         llm_predictor=llm_predictor, prompt_helper=prompt_helper, callback_manager=callbackManager)
