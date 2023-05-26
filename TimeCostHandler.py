@@ -6,6 +6,20 @@ from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
+class BaseEvent:
+    def __init__(
+        self,
+        event_type: CBEventType,
+        start_time: str
+        ) -> None:
+        self.event_type = event_type
+        self.start_time = start_time
+    def count_cost(
+        self,
+        cur_time:str
+        ) -> str:
+        cost = datetime.strptime(cur_time,'%b-%d-%Y %H:%M:%S') - datetime.strptime(self.start_time,'%b-%d-%Y %H:%M:%S')
+        return cost.total_seconds()
 
 class TimeCostHandler(BaseCallbackHandler):
     def __init__(
@@ -23,11 +37,11 @@ class TimeCostHandler(BaseCallbackHandler):
         event_id: str = "", **kwargs: Any
     ) -> str:
         cur_time = datetime.now().strftime('%b-%d-%Y %H:%M:%S')
-        logger.info("begin eventType:%s eventId:%s timestamp:%s" %
+        logger.info("begin eventType:%s eventId:%s start_time:%s" %
                     (event_type, event_id, cur_time))
         if event_id not in self.event_id_dict:
             self.event_id_dict[event_id] = []
-        self.event_id_dict[event_id].append(event_type)
+        self.event_id_dict[event_id].append(BaseEvent(event_type,cur_time))
 
     def on_event_end(
         self,
@@ -38,6 +52,6 @@ class TimeCostHandler(BaseCallbackHandler):
         cur_time = datetime.now().strftime('%b-%d-%Y %H:%M:%S')
         end_list = self.event_id_dict[event_id]
         for x in end_list:
-            logger.info("end eventType:%s eventId:%s timestamp:%s" %
-                        (x, event_id, cur_time))
+            logger.info("end eventType:%s eventId:%s end_time:%s cost_time:%ss" %
+                        (x.event_type, event_id, cur_time, x.count_cost(cur_time)))
         self.event_id_dict.pop(event_id)
