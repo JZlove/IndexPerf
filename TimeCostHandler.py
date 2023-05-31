@@ -16,9 +16,9 @@ class BaseEvent:
         self.start_time = start_time
     def count_cost(
         self,
-        cur_time:str
+        cur_time:datetime
         ) -> str:
-        cost = datetime.strptime(cur_time,'%b-%d-%Y %H:%M:%S') - datetime.strptime(self.start_time,'%b-%d-%Y %H:%M:%S')
+        cost = cur_time - self.start_time
         return cost.total_seconds()
 
 class TimeCostHandler(BaseCallbackHandler):
@@ -36,9 +36,9 @@ class TimeCostHandler(BaseCallbackHandler):
         payload: Dict[str, Any] | None = None,
         event_id: str = "", **kwargs: Any
     ) -> str:
-        cur_time = datetime.now().strftime('%b-%d-%Y %H:%M:%S')
-        logger.info("begin eventType:%s eventId:%s start_time:%s" %
-                    (event_type, event_id, cur_time))
+        cur_time = datetime.now()
+        logger.info("beg eventType:%s eventId:%s beg_time:%s" %
+                    (event_type, event_id, cur_time.strftime('%b-%d-%Y %H:%M:%S')))
         if event_id not in self.event_id_dict:
             self.event_id_dict[event_id] = []
         self.event_id_dict[event_id].append(BaseEvent(event_type,cur_time))
@@ -49,9 +49,9 @@ class TimeCostHandler(BaseCallbackHandler):
         payload: Dict[str, Any] | None = None,
         event_id: str = "", **kwargs: Any
     ) -> None:
-        cur_time = datetime.now().strftime('%b-%d-%Y %H:%M:%S')
+        cur_time = datetime.now()
         end_list = self.event_id_dict[event_id]
         for x in end_list:
             logger.info("end eventType:%s eventId:%s end_time:%s cost_time:%ss" %
-                        (x.event_type, event_id, cur_time, x.count_cost(cur_time)))
+                        (x.event_type, event_id, cur_time.strftime('%b-%d-%Y %H:%M:%S'), x.count_cost(cur_time)))
         self.event_id_dict.pop(event_id)
